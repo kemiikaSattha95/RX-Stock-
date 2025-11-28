@@ -1,115 +1,68 @@
-let stockList = JSON.parse(localStorage.getItem("engineer_stock")) || [];
-let editIndex = null;
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Engineer Stock Management</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
 
-function saveItem() {
-    const name = itemName.value;
-    const code = itemCode.value;
-    const category = itemCategory.value;
-    const qty = Number(itemQty.value);
-    const min = Number(itemMin.value);
+<body>
 
-    if (!name || !code || !category || !qty || !min) {
-        alert("กรุณากรอกข้อมูลให้ครบ");
-        return;
-    }
+<header>
+    <h1>ENGINEER STOCK MANAGEMENT SYSTEM</h1>
+    <p>ระบบจัดการสต็อกแผนก ENGINEER</p>
+</header>
 
-    const item = { name, code, category, qty, min };
+<div class="container">
 
-    if (editIndex !== null) {
-        stockList[editIndex] = item;
-        editIndex = null;
-        saveBtn.textContent = "บันทึก";
-        cancelBtn.classList.add("hidden");
-    } else {
-        stockList.push(item);
-    }
+    <!-- Form Add/Edit -->
+    <div class="form-box">
+        <h2>เพิ่ม / แก้ไขรายการสต็อก</h2>
 
-    saveToLocal();
-    renderTable();
-    clearForm();
-}
+        <input id="itemName" type="text" placeholder="ชื่ออุปกรณ์ (เช่น ประแจ, บล็อก, เซนเซอร์)">
+        <input id="itemCode" type="text" placeholder="รหัส (เช่น ENG-001)">
+        
+        <select id="itemCategory">
+            <option value="">เลือกหมวดหมู่</option>
+            <option value="Tools">Tools</option>
+            <option value="Electrical">Electrical</option>
+            <option value="Mechanical">Mechanical</option>
+            <option value="Spare Part">Spare Part</option>
+            <option value="Safety">Safety</option>
+        </select>
 
-function renderTable() {
-    const tbody = document.querySelector("#stockTable tbody");
-    tbody.innerHTML = "";
+        <input id="itemQty" type="number" placeholder="จำนวน">
+        <input id="itemMin" type="number" placeholder="สต็อกขั้นต่ำ (แจ้งเตือน)">
 
-    stockList.forEach((item, i) => {
-        let statusClass = "normal";
-        let statusText = "เพียงพอ";
+        <button id="saveBtn" onclick="saveItem()">บันทึก</button>
+        <button id="cancelBtn" class="hidden" onclick="cancelEdit()">ยกเลิก</button>
+    </div>
 
-        if (item.qty <= item.min) {
-            statusClass = "low";
-            statusText = "สต็อกอันตราย!";
-        } else if (item.qty <= item.min + 3) {
-            statusClass = "warn";
-            statusText = "ใกล้หมด";
-        }
+    <!-- Search -->
+    <div class="search-box">
+        <input id="searchBar" type="text" placeholder="ค้นหาชื่อ / รหัส / หมวดหมู่..." onkeyup="searchItem()">
+    </div>
 
-        tbody.innerHTML += `
-            <tr class="${statusClass}">
-                <td>${item.name}</td>
-                <td>${item.code}</td>
-                <td>${item.category}</td>
-                <td>${item.qty}</td>
-                <td>${item.min}</td>
-                <td>${statusText}</td>
-                <td>
-                    <button onclick="editItem(${i})">แก้ไข</button>
-                    <button class="red" onclick="deleteItem(${i})">ลบ</button>
-                </td>
+    <!-- Table -->
+    <table id="stockTable">
+        <thead>
+            <tr>
+                <th>ชื่ออุปกรณ์</th>
+                <th>รหัส</th>
+                <th>หมวดหมู่</th>
+                <th>จำนวน</th>
+                <th>ขั้นต่ำ</th>
+                <th>สถานะ</th>
+                <th>จัดการ</th>
             </tr>
-        `;
-    });
-}
+        </thead>
+        <tbody></tbody>
+    </table>
 
-function editItem(i) {
-    const item = stockList[i];
+</div>
 
-    itemName.value = item.name;
-    itemCode.value = item.code;
-    itemCategory.value = item.category;
-    itemQty.value = item.qty;
-    itemMin.value = item.min;
+<script src="script.js"></script>
 
-    editIndex = i;
-    saveBtn.textContent = "บันทึกการแก้ไข";
-    cancelBtn.classList.remove("hidden");
-}
-
-function cancelEdit() {
-    clearForm();
-    editIndex = null;
-    saveBtn.textContent = "บันทึก";
-    cancelBtn.classList.add("hidden");
-}
-
-function deleteItem(i) {
-    if (confirm("ต้องการลบรายการนี้หรือไม่?")) {
-        stockList.splice(i, 1);
-        saveToLocal();
-        renderTable();
-    }
-}
-
-function searchItem() {
-    const keyword = searchBar.value.toLowerCase();
-    const rows = document.querySelectorAll("#stockTable tbody tr");
-
-    rows.forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(keyword) ? "" : "none";
-    });
-}
-
-function clearForm() {
-    itemName.value = "";
-    itemCode.value = "";
-    itemCategory.value = "";
-    itemQty.value = "";
-    itemMin.value = "";
-}
-
-function saveToLocal() {
-    localStorage.setItem("engineer_stock", JSON.stringify(stockList));
-}
-
-renderTable();
+</body>
+</html>
