@@ -1,55 +1,115 @@
-<Engineering>
-<html lang="th">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stock engineer system</title>
-    <link rel="stylesheet" href="style.css" />
-</head>
-<body>
+let stockList = JSON.parse(localStorage.getItem("engineer_stock")) || [];
+let editIndex = null;
 
-<h2>📦 ระบบเช็คสต็อกสินค้า</h2>
+function saveItem() {
+    const name = itemName.value;
+    const code = itemCode.value;
+    const category = itemCategory.value;
+    const qty = Number(itemQty.value);
+    const min = Number(itemMin.value);
 
-<div class="container">
+    if (!name || !code || !category || !qty || !min) {
+        alert("กรุณากรอกข้อมูลให้ครบ");
+        return;
+    }
 
-    <div class="form">
-        <h3>เพิ่ม / แก้ไขสินค้า</h3>
+    const item = { name, code, category, qty, min };
 
-        <input id="productName" type="text" placeholder="ชื่อสินค้า">
-        <input id="productCode" type="text" placeholder="รหัสสินค้า">
-        <input id="productQty" type="number" placeholder="จำนวน">
-        <input id="productLow" type="number" placeholder="แจ้งเตือนเมื่อสต็อกต่ำกว่า...">
+    if (editIndex !== null) {
+        stockList[editIndex] = item;
+        editIndex = null;
+        saveBtn.textContent = "บันทึก";
+        cancelBtn.classList.add("hidden");
+    } else {
+        stockList.push(item);
+    }
 
-        <button id="saveBtn" onclick="saveProduct()">บันทึกสินค้า</button>
-        <button id="cancelEditBtn" onclick="cancelEdit()" class="hidden">ยกเลิกการแก้ไข</button>
-    </div>
+    saveToLocal();
+    renderTable();
+    clearForm();
+}
 
-    <div class="search-box">
-        <input id="searchInput" type="text" placeholder="ค้นหาสินค้า..." onkeyup="searchProduct()">
-    </div>
+function renderTable() {
+    const tbody = document.querySelector("#stockTable tbody");
+    tbody.innerHTML = "";
 
-    <div class="summary">
-        <p><strong>จำนวนทั้งหมด:</strong> <span id="totalQty">0</span> ชิ้น</p>
-        <button onclick="clearAll()" class="danger">ลบข้อมูลทั้งหมด</button>
-    </div>
+    stockList.forEach((item, i) => {
+        let statusClass = "normal";
+        let statusText = "เพียงพอ";
 
-    <table id="stockTable">
-        <thead>
-            <tr>
-                <th>ชื่อสินค้า</th>
-                <th>รหัสสินค้า</th>
-                <th>จำนวน</th>
-                <th>แจ้งเตือนต่ำกว่า</th>
-                <th>สถานะ</th>
-                <th>การจัดการ</th>
+        if (item.qty <= item.min) {
+            statusClass = "low";
+            statusText = "สต็อกอันตราย!";
+        } else if (item.qty <= item.min + 3) {
+            statusClass = "warn";
+            statusText = "ใกล้หมด";
+        }
+
+        tbody.innerHTML += `
+            <tr class="${statusClass}">
+                <td>${item.name}</td>
+                <td>${item.code}</td>
+                <td>${item.category}</td>
+                <td>${item.qty}</td>
+                <td>${item.min}</td>
+                <td>${statusText}</td>
+                <td>
+                    <button onclick="editItem(${i})">แก้ไข</button>
+                    <button class="red" onclick="deleteItem(${i})">ลบ</button>
+                </td>
             </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+        `;
+    });
+}
 
-</div>
+function editItem(i) {
+    const item = stockList[i];
 
-<script src="script.js"></script>
+    itemName.value = item.name;
+    itemCode.value = item.code;
+    itemCategory.value = item.category;
+    itemQty.value = item.qty;
+    itemMin.value = item.min;
 
-</body>
-</html>
+    editIndex = i;
+    saveBtn.textContent = "บันทึกการแก้ไข";
+    cancelBtn.classList.remove("hidden");
+}
+
+function cancelEdit() {
+    clearForm();
+    editIndex = null;
+    saveBtn.textContent = "บันทึก";
+    cancelBtn.classList.add("hidden");
+}
+
+function deleteItem(i) {
+    if (confirm("ต้องการลบรายการนี้หรือไม่?")) {
+        stockList.splice(i, 1);
+        saveToLocal();
+        renderTable();
+    }
+}
+
+function searchItem() {
+    const keyword = searchBar.value.toLowerCase();
+    const rows = document.querySelectorAll("#stockTable tbody tr");
+
+    rows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(keyword) ? "" : "none";
+    });
+}
+
+function clearForm() {
+    itemName.value = "";
+    itemCode.value = "";
+    itemCategory.value = "";
+    itemQty.value = "";
+    itemMin.value = "";
+}
+
+function saveToLocal() {
+    localStorage.setItem("engineer_stock", JSON.stringify(stockList));
+}
+
+renderTable();
