@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<Engineering>
 <html lang="th">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ระบบเช็คสต็อกสินค้า</title>
+    <title>Stock engineer system</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
